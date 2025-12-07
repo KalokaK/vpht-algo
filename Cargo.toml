@@ -5,6 +5,7 @@ authors = ["Kaloka <fish@fish.fish>"]
 edition = "2024"
 include = ["LICENSE-APACHE", "LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 rust-version = "1.85"
+license = "MIT OR Apache-2.0"
 
 [package.metadata.docs.rs]
 all-features = true

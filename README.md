@@ -34,3 +34,7 @@ Open `http://127.0.0.1:8080/index.html#dev` in a browser.
 
 - [eframe_template](https://github.com/emilk/eframe_template/) for the initial template.
 - [egui](https://github.com/emilk/egui) for the GUI framework.
+
+## License 
+
+Licensed under either of Apache-2.0 or MIT at your option.
