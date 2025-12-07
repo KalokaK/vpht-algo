@@ -5,6 +5,8 @@ A tool for visualizing and brute-forcing VPHT algorithm results.
 This project is built using [egui](https://github.com/emilk/egui) and [eframe](https://github.com/emilk/egui/tree/master/crates/eframe).
 It is based on the [eframe template](https://github.com/emilk/eframe_template/).
 
+Live demo: https://kalokak.github.io/vpht-algo/
+
 ## Getting Started
 
 ### Prerequisites

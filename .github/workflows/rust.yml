@@ -84,7 +84,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- # -D warnings -A dead_code
+          args: -- # #w-D warnings -A dead_code
 
   trunk:
     name: trunk

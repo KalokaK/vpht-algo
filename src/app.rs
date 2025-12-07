@@ -2044,6 +2044,13 @@ impl TemplateApp {
             // The top panel is often a good place for a menu bar:
 
             egui::MenuBar::new().ui(ui, |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    use egui::special_emojis::GITHUB;
+                    ui.hyperlink_to(
+                        format!("{GITHUB} vpht-algo on GitHub"),
+                        "https://github.com/KalokaK/vpht-algo",
+                    );
+                });
                 egui::widgets::global_theme_preference_buttons(ui);
                 ui.add_space(16.0);
                 if ui.button("Clear Graph").clicked() {
