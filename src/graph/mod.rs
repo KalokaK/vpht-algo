@@ -999,14 +999,13 @@ impl Graph {
         let mut target_comps_rev = Vec::new();
         let mut target_cycles_rev = Vec::new();
 
-        let sweep =
-            SimplexWiseSweepFiltrationRef::from_graph_dir(
-                self,
-                dir,
-                &mut target_ord,
-                &mut target_vtx,
-                &mut target_edg,
-            );
+        let sweep = SimplexWiseSweepFiltrationRef::from_graph_dir(
+            self,
+            dir,
+            &mut target_ord,
+            &mut target_vtx,
+            &mut target_edg,
+        );
         let pd = DirectedPersistenceRef::from_sweep(
             sweep,
             &mut target_comps,
@@ -1014,14 +1013,13 @@ impl Graph {
             &mut target_simplex_sweep_vec,
             &mut creator_buffer,
         );
-        let sweep_rev =
-            SimplexWiseSweepFiltrationRef::from_graph_dir(
-                self,
-                dir.flip(),
-                &mut target_ord,
-                &mut target_vtx,
-                &mut target_edg,
-            );
+        let sweep_rev = SimplexWiseSweepFiltrationRef::from_graph_dir(
+            self,
+            dir.flip(),
+            &mut target_ord,
+            &mut target_vtx,
+            &mut target_edg,
+        );
         let pd_rev = DirectedPersistenceRef::from_sweep(
             sweep_rev,
             &mut target_comps_rev,
@@ -1065,14 +1063,13 @@ impl Graph {
 
                             if {
                                 // construct the comparison persistence diagrams
-                                let comp_sweep =
-                                    SimplexWiseSweepFiltrationRef::from_graph_dir(
-                                        &mod_graph,
-                                        dir,
-                                        &mut target_ord,
-                                        &mut target_vtx,
-                                        &mut target_edg,
-                                    );
+                                let comp_sweep = SimplexWiseSweepFiltrationRef::from_graph_dir(
+                                    &mod_graph,
+                                    dir,
+                                    &mut target_ord,
+                                    &mut target_vtx,
+                                    &mut target_edg,
+                                );
                                 let comp_pd = DirectedPersistenceRef::from_sweep(
                                     comp_sweep,
                                     &mut compare_target_comps,
@@ -1080,14 +1077,13 @@ impl Graph {
                                     &mut target_simplex_sweep_vec,
                                     &mut creator_buffer,
                                 );
-                                let comp_sweep_rev =
-                                    SimplexWiseSweepFiltrationRef::from_graph_dir(
-                                        &mod_graph,
-                                        dir.flip(),
-                                        &mut target_ord,
-                                        &mut target_vtx,
-                                        &mut target_edg,
-                                    );
+                                let comp_sweep_rev = SimplexWiseSweepFiltrationRef::from_graph_dir(
+                                    &mod_graph,
+                                    dir.flip(),
+                                    &mut target_ord,
+                                    &mut target_vtx,
+                                    &mut target_edg,
+                                );
                                 let comp_pd_rev = DirectedPersistenceRef::from_sweep(
                                     comp_sweep_rev,
                                     &mut compare_target_comps_rev,
@@ -1100,7 +1096,6 @@ impl Graph {
                             } {
                                 out.lock().unwrap().push(graph_view);
                             }
-                            
                         } else {
                             break;
                         }
@@ -1394,7 +1389,7 @@ pub fn cycle_search(
     colliding_graphs: &Vec<SmallGraphView32>,
     dir: SweepDir,
     exclude_common_edges: bool, // these are the same as length 2 cycles
-    find_minimal_cycle: bool
+    find_minimal_cycle: bool,
 ) -> CycleSearchResult {
     let mut non_partitionable_pairs = Vec::new();
     let mut partitionable_pairs = Vec::new();
@@ -1456,8 +1451,12 @@ pub fn cycle_search(
             // data structure: Vec<Edge> for available edges from I and J + Vec<Vec<Edge>> for current cycles found
 
             let res = if find_minimal_cycle {
-                exhaustive_partition_into_alternating_cycles_in_place_min(&unique_i_edges, &unique_j_edges, n_vtx) 
-            } else { 
+                exhaustive_partition_into_alternating_cycles_in_place_min(
+                    &unique_i_edges,
+                    &unique_j_edges,
+                    n_vtx,
+                )
+            } else {
                 partition_into_alternating_cycles(&unique_i_edges, &unique_j_edges, n_vtx)
             };
             match res {
@@ -1678,7 +1677,6 @@ fn partition_into_alternating_cycles(
         None
     }
 }
-
 
 // attempt to partition the given unique edges into alternating cycles,
 // setup code for backtracking search over cycles
@@ -1991,15 +1989,15 @@ fn backtrack_exhaustive_cycle_partition_in_place_minimum(
         // we used all i edges, if we also used all j edges we have a partition
         if used_j.iter().all(|used| *used) {
             let mut o = cycles.clone();
-            o.sort_by(|a,b| b.len().cmp(&a.len()));
+            o.sort_by(|a, b| b.len().cmp(&a.len()));
             match all_partitions {
                 Some(all_part) => {
                     if ExhaustiveCycleSearchResult::compare_partitions(&all_part, &o).is_ge() {
                         // memory reuse for nested vectors
                         *all_part = o;
                     }
-                },
-                None => *all_partitions = Some(o)
+                }
+                None => *all_partitions = Some(o),
             }
         }
     }

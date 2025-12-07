@@ -1,20 +1,17 @@
-use std::num::NonZero;
 use std::{cmp::Ordering, sync::Mutex};
-use std::time::{Duration, Instant};
 
 use std::thread;
 
 use egui::epaint::QuadraticBezierShape;
-use serde_json::{Result, Value};
+use serde_json::Value;
 
 use crate::graph::{
-    AllSmallGraphs32, CycleSearchResult, DirectedPersistence, Edge, ExhaustiveCycleSearchResult, Graph, PersistenceDiagram, SimplexWiseSweepFiltration, SmallGraphView32, SmallGraphsWithEdgesSet32, SweepDir, Vertex, cycle_search, exhaustive_cycle_search
+    AllSmallGraphs32, CycleSearchResult, DirectedPersistence, Edge, ExhaustiveCycleSearchResult,
+    Graph, SimplexWiseSweepFiltration, SmallGraphView32, SmallGraphsWithEdgesSet32, SweepDir,
+    Vertex, cycle_search, exhaustive_cycle_search,
 };
-use egui::{Color32, Layout, Pos2, Rect, Stroke, Ui, Vec2};
-use rayon::{
-    iter::{IntoParallelRefIterator, ParallelIterator},
-    range,
-};
+use egui::{Color32, Pos2, Rect, Stroke, Ui, Vec2};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 #[derive(Clone)]
 struct CycleSearchResSummary {
@@ -95,18 +92,29 @@ fn project_vertex(
     )
 }
 
-fn arc_edge_painter(a: Pos2, b: Pos2, arrow_head: bool, stroke: egui::Stroke, painter: &egui::Painter) {
-    let ab = b-a;
+fn arc_edge_painter(
+    a: Pos2,
+    b: Pos2,
+    arrow_head: bool,
+    stroke: egui::Stroke,
+    painter: &egui::Painter,
+) {
+    let ab = b - a;
     let c = a + 0.5 * ab + 0.3 * ab.rot90();
-    let shape = QuadraticBezierShape::from_points_stroke([a, c, b], false, egui::Color32::default(), stroke);
+    let shape = QuadraticBezierShape::from_points_stroke(
+        [a, c, b],
+        false,
+        egui::Color32::default(),
+        stroke,
+    );
     painter.add(shape);
     if !arrow_head {
         return;
     } // arrow head
     let dir = (b - c).normalized();
     let (c, s) = (35.0f32.cos(), 35.0f32.sin());
-    let l_pt = b + 10. * Vec2::new(c * dir.x - s*dir.y, s*dir.x + c*dir.y);
-    let r_pt = b + 10. * Vec2::new(c * dir.x + s * dir.y, - s*dir.x + c*dir.y);
+    let l_pt = b + 10. * Vec2::new(c * dir.x - s * dir.y, s * dir.x + c * dir.y);
+    let r_pt = b + 10. * Vec2::new(c * dir.x + s * dir.y, -s * dir.x + c * dir.y);
     painter.line_segment([b, l_pt], stroke);
     painter.line_segment([b, r_pt], stroke);
 }
@@ -243,14 +251,7 @@ impl CycleSearchPanel {
                     &base_graph.vertices[edg.b],
                 );
                 let color = if is_i { red_color } else { blue_color };
-                let a_vec = p2 - p1;
-                let tartget_len = (a_vec.length() * 1. / 5.).min(40.); // arrow size limit
-                let final_vec = a_vec.normalized() * tartget_len; // normalize, rescale
-                let offset = (a_vec.length() * 4. / 5.).min(20.); // offset limit
-                let s_pos = p2 - final_vec - offset * a_vec.normalized(); // arrow head at 90% of edge length
-                // painter.arrow(s_pos, final_vec, Stroke::new(3.2 - c_factor, color));
                 arc_edge_painter(p1, p2, true, Stroke::new(3.2 - c_factor, color), painter);
-                //painter.line_segment([p1, p2], Stroke::new(3.2 - c_factor, color));
                 is_i = !is_i;
             }
         }
@@ -466,45 +467,50 @@ impl CycleSearchPanel {
         ui.add_space(4.0);
         let n_pairs = self.cycle_data.non_partitionable_pairs.len()
             + self.cycle_data.partitionable_pairs.len();
-        
+
         let min_width = 400.;
-        let n_col = ( ui.available_width() / min_width).floor() as usize;
+        let n_col = (ui.available_width() / min_width).floor() as usize;
         let r_width = ui.available_width() / n_col as f32 - 10.;
         let n_rows = (n_pairs as f32 / n_col as f32).ceil() as usize;
-        
+
         egui::ScrollArea::vertical().show_rows(ui, 300., n_rows, |ui, row_range| {
             for row in row_range {
                 ui.horizontal(|ui| {
-                // ui.set_width(ui.available_width());
-                
-                for offset in 0..n_col {
-                    ui.vertical(|ui| {
-                    ui.set_width(r_width);
-                    ui.vertical(|ui| {
-                    let row = row * n_col + offset;
-                    let n_part_pairs = self.cycle_data.partitionable_pairs.len();
-                    if row < n_part_pairs {
-                        let p_pair = &self.cycle_data.partitionable_pairs[row];
-                        Self::draw_partitionable_pair(
-                            &self.graphs[p_pair.0],
-                            &self.graphs[p_pair.1],
-                            &p_pair.2,
-                            &format!("{}", p_pair.0 + 1),
-                            &format!("{}", p_pair.1 + 1),
-                            ui,
-                        );
-                    } else if row - n_part_pairs < self.cycle_data.non_partitionable_pairs.len() {
-                        let idx = row - n_part_pairs;
-                        let pair = self.cycle_data.non_partitionable_pairs[idx];
-                        Self::draw_non_partitionable_pair(
-                            &self.graphs[pair.0],
-                            &self.graphs[pair.1],
-                            &format!("{}", pair.0 + 1),
-                            &format!("{}", pair.1 + 1),
-                            ui,
-                        );
-                    }});});
-                }});
+                    // ui.set_width(ui.available_width());
+
+                    for offset in 0..n_col {
+                        ui.vertical(|ui| {
+                            ui.set_width(r_width);
+                            ui.vertical(|ui| {
+                                let row = row * n_col + offset;
+                                let n_part_pairs = self.cycle_data.partitionable_pairs.len();
+                                if row < n_part_pairs {
+                                    let p_pair = &self.cycle_data.partitionable_pairs[row];
+                                    Self::draw_partitionable_pair(
+                                        &self.graphs[p_pair.0],
+                                        &self.graphs[p_pair.1],
+                                        &p_pair.2,
+                                        &format!("{}", p_pair.0 + 1),
+                                        &format!("{}", p_pair.1 + 1),
+                                        ui,
+                                    );
+                                } else if row - n_part_pairs
+                                    < self.cycle_data.non_partitionable_pairs.len()
+                                {
+                                    let idx = row - n_part_pairs;
+                                    let pair = self.cycle_data.non_partitionable_pairs[idx];
+                                    Self::draw_non_partitionable_pair(
+                                        &self.graphs[pair.0],
+                                        &self.graphs[pair.1],
+                                        &format!("{}", pair.0 + 1),
+                                        &format!("{}", pair.1 + 1),
+                                        ui,
+                                    );
+                                }
+                            });
+                        });
+                    }
+                });
             }
         });
     }
@@ -550,8 +556,7 @@ fn draw_graph_preview(painter: &egui::Painter, graph: &Graph, rect: Rect) {
     // Calculate offsets to center and scale the graph
     let graph_width = (max_x - min_x).max(1e-5);
     let graph_height = (max_y - min_y).max(1e-5);
-    let scale =
-        (rect.width() / graph_width as f32).min(rect.height() / graph_height as f32) * 0.8;
+    let scale = (rect.width() / graph_width as f32).min(rect.height() / graph_height as f32) * 0.8;
     let grid_size = scale;
     // bounds center in world coordinates
     let center_x = (min_x + max_x) / 2.0;
@@ -600,8 +605,7 @@ fn draw_small_persistence_diagram(
     width: f32,
     height: f32,
 ) {
-    let (response, painter) =
-        ui.allocate_painter(Vec2::new(width, height), egui::Sense::hover());
+    let (response, painter) = ui.allocate_painter(Vec2::new(width, height), egui::Sense::hover());
 
     let rect = response.rect;
 
@@ -754,107 +758,97 @@ fn draw_collision_set(
         .floor()
         .max(1.0) as usize;
 
-    ui.vertical(|ui| {egui::ScrollArea::vertical().show(ui, |ui| {
-        // button to display pairwise cycles
-        ui.strong(format!(
-            "Has non partitionable: {}",
-            if has_non_part {
-                "Yes"
-            } else {
-                "No"
+    ui.vertical(|ui| {
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            // button to display pairwise cycles
+            ui.strong(format!(
+                "Has non partitionable: {}",
+                if has_non_part { "Yes" } else { "No" }
+            ));
+            if ui.button("Show Cycles").clicked() {
+                *display_cycle_sarch = true;
             }
-        ));
-        if ui.button("Show Cycles").clicked() {
-            *display_cycle_sarch = true;
-        }
-        ui.add_space(5.0);
-        ui.separator();
-        ui.label("Selected graphs:");
-        ui.add_space(5.0);
+            ui.add_space(5.0);
+            ui.separator();
+            ui.label("Selected graphs:");
+            ui.add_space(5.0);
 
-        // Draw selected graphs in grid
-        let selected_indices: Vec<usize> = collision_set
-            .iter()
-            .enumerate()
-            // .filter(|(idx, _)| self.selected_collision_set_graphs[set_idx][*idx])
-            .map(|(idx, _)| idx)
-            .collect();
+            // Draw selected graphs in grid
+            let selected_indices: Vec<usize> = collision_set
+                .iter()
+                .enumerate()
+                // .filter(|(idx, _)| self.selected_collision_set_graphs[set_idx][*idx])
+                .map(|(idx, _)| idx)
+                .collect();
 
-        for chunk in selected_indices.chunks(graphs_per_row) {
-            ui.horizontal(|ui| {
-                for &graph_idx in chunk {
-                    ui.vertical(|ui| {
-                        ui.label(format!("Graph {}", graph_idx + 1));
-                        ui.horizontal(|ui| {
-                            // Graph preview
-                            let (response, painter) = ui.allocate_painter(
-                                Vec2::new(graph_width, graph_height),
-                                egui::Sense::hover(),
-                            );
-                            let rect = response.rect;
-                            collision_set[graph_idx].write_to_graph_with_id_vtx(mod_graph);
-                            draw_graph_preview(&painter, &mod_graph, rect);
-
-                            ui.add_space(5.0);
-
+            for chunk in selected_indices.chunks(graphs_per_row) {
+                ui.horizontal(|ui| {
+                    for &graph_idx in chunk {
+                        ui.vertical(|ui| {
+                            ui.label(format!("Graph {}", graph_idx + 1));
                             ui.horizontal(|ui| {
-                                ui.vertical(|ui| {
-                                    ui.label("forward:");
-                                    ui.label("H₀"); // Compose key is great.
-                                    draw_small_persistence_diagram(
-                                        ui,
-                                        &persistence[graph_idx]
-                                            .0
-                                            .connected_comp,
-                                        Color32::BLUE,
-                                        diagram_width,
-                                        70.0,
-                                    );
-                                    ui.add_space(3.0);
-                                    ui.label("H₁");
-                                    draw_small_persistence_diagram(
-                                        ui,
-                                        &persistence[graph_idx]
-                                            .0
-                                            .cycles,
-                                        Color32::RED,
-                                        diagram_width,
-                                        70.0,
-                                    );
-                                });
-                                ui.vertical(|ui| {
-                                    ui.label("backward:");
-                                    ui.label("H₀"); // Compose key is great.
-                                    draw_small_persistence_diagram(
-                                        ui,
-                                        &persistence[graph_idx]
-                                            .1
-                                            .connected_comp,
-                                        Color32::BLUE,
-                                        diagram_width,
-                                        70.0,
-                                    );
-                                    ui.add_space(3.0);
-                                    ui.label("H₁");
-                                    draw_small_persistence_diagram(
-                                        ui,
-                                        &persistence[graph_idx]
-                                            .1
-                                            .cycles,
-                                        Color32::RED,
-                                        diagram_width,
-                                        70.0,
-                                    );
+                                // Graph preview
+                                let (response, painter) = ui.allocate_painter(
+                                    Vec2::new(graph_width, graph_height),
+                                    egui::Sense::hover(),
+                                );
+                                let rect = response.rect;
+                                collision_set[graph_idx].write_to_graph_with_id_vtx(mod_graph);
+                                draw_graph_preview(&painter, &mod_graph, rect);
+
+                                ui.add_space(5.0);
+
+                                ui.horizontal(|ui| {
+                                    ui.vertical(|ui| {
+                                        ui.label("forward:");
+                                        ui.label("H₀"); // Compose key is great.
+                                        draw_small_persistence_diagram(
+                                            ui,
+                                            &persistence[graph_idx].0.connected_comp,
+                                            Color32::BLUE,
+                                            diagram_width,
+                                            70.0,
+                                        );
+                                        ui.add_space(3.0);
+                                        ui.label("H₁");
+                                        draw_small_persistence_diagram(
+                                            ui,
+                                            &persistence[graph_idx].0.cycles,
+                                            Color32::RED,
+                                            diagram_width,
+                                            70.0,
+                                        );
+                                    });
+                                    ui.vertical(|ui| {
+                                        ui.label("backward:");
+                                        ui.label("H₀"); // Compose key is great.
+                                        draw_small_persistence_diagram(
+                                            ui,
+                                            &persistence[graph_idx].1.connected_comp,
+                                            Color32::BLUE,
+                                            diagram_width,
+                                            70.0,
+                                        );
+                                        ui.add_space(3.0);
+                                        ui.label("H₁");
+                                        draw_small_persistence_diagram(
+                                            ui,
+                                            &persistence[graph_idx].1.cycles,
+                                            Color32::RED,
+                                            diagram_width,
+                                            70.0,
+                                        );
+                                    });
                                 });
                             });
                         });
-                    });
-                    ui.add_space(spacing);
-                }
-            });
-            ui.add_space(spacing);
-        }
-    });});
+                        ui.add_space(spacing);
+                    }
+                });
+                ui.add_space(spacing);
+            }
+        });
+    });
 }
 
 impl CollisionSetsPanel {
@@ -1092,30 +1086,76 @@ impl CollisionSetsPanel {
     }
 
     fn compute_collision_sets_summary(&mut self) {
-        let n =   self.collision_sets.len();
-        if n == 0 { return; }
+        let n = self.collision_sets.len();
+        if n == 0 {
+            return;
+        }
         //println!("n: {}, max_t: {}", n, rayon::max_num_threads());
         #[cfg(not(target_arch = "wasm32"))]
         {
-        let out_res: Mutex<Vec<CycleSearchResSummary>> = Mutex::new(vec![CycleSearchResSummary{has_non_part: false, maximal_minimal_cycle: None}; n]);
-        let mtx = Mutex::new(0..n);
-        let n_thrds = std::thread::available_parallelism().map(|v| v.get()).unwrap_or(1);
-        println!("current number of availible threads: {}",n_thrds);
-        thread::scope(|s|{
-        for _ in 0..n_thrds {
-            s.spawn(|| {
-                println!("current tid: {:?}", thread::current().id());
-                let mut idx ;
-                loop {
-                    {
-                        let res = mtx.lock().unwrap().next();
-                        if let Some(res) = res {
-                            idx = res;
-                        } else {
-                            return;
+            let out_res: Mutex<Vec<CycleSearchResSummary>> = Mutex::new(vec![
+                    CycleSearchResSummary {
+                        has_non_part: false,
+                        maximal_minimal_cycle: None
+                    };
+                    n
+                ]);
+            let mtx = Mutex::new(0..n);
+            let n_thrds = std::thread::available_parallelism()
+                .map(|v| v.get())
+                .unwrap_or(1);
+            println!("current number of availible threads: {}", n_thrds);
+            thread::scope(|s| {
+                for _ in 0..n_thrds {
+                    s.spawn(|| {
+                        println!("current tid: {:?}", thread::current().id());
+                        let mut idx;
+                        loop {
+                            {
+                                let res = mtx.lock().unwrap().next();
+                                if let Some(res) = res {
+                                    idx = res;
+                                } else {
+                                    return;
+                                }
+                            }
+                            let set = &self.collision_sets[idx];
+                            let res = cycle_search(
+                                &self.collision_sets_graph,
+                                set,
+                                self.sweep_dir,
+                                self.exclude_common_edges,
+                                true,
+                            );
+                            // res.minimal_trafo();
+
+                            let minimal_part =
+                                res.partitionable_pairs
+                                    .iter()
+                                    .max_by(|(_, _, v), (_, _, w)| {
+                                        ExhaustiveCycleSearchResult::compare_partitions(&v, &w)
+                                    });
+                            let out = CycleSearchResSummary {
+                                maximal_minimal_cycle: minimal_part.map(|mp| {
+                                    mp.2.iter().map(|v| v.len() as u16).collect::<Vec<u16>>()
+                                }),
+                                has_non_part: res.has_non_partitionable(),
+                            };
+                            std::mem::drop(res);
+                            out_res.lock().unwrap()[idx] = out;
                         }
-                    }
-                    let set = &self.collision_sets[idx];
+                    });
+                }
+            });
+            self.collision_sets_cycle_summaries = out_res.into_inner().unwrap();
+            println!("finished compute with threads threads: {}", n_thrds);
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            self.collision_sets_cycle_summaries = self
+                .collision_sets
+                .par_iter()
+                .map(|set| {
                     let res = cycle_search(
                         &self.collision_sets_graph,
                         set,
@@ -1125,53 +1165,19 @@ impl CollisionSetsPanel {
                     );
                     // res.minimal_trafo();
 
-                    let minimal_part = res
-                        .partitionable_pairs
-                        .iter()
-                        .max_by(|(_, _, v), (_, _, w)| {
-                            ExhaustiveCycleSearchResult::compare_partitions(&v, &w)
-                        });
-                    let out =  CycleSearchResSummary {
+                    let minimal_part =
+                        res.partitionable_pairs
+                            .iter()
+                            .max_by(|(_, _, v), (_, _, w)| {
+                                ExhaustiveCycleSearchResult::compare_partitions(&v, &w)
+                            });
+                    CycleSearchResSummary {
                         maximal_minimal_cycle: minimal_part
                             .map(|mp| mp.2.iter().map(|v| v.len() as u16).collect::<Vec<u16>>()),
                         has_non_part: res.has_non_partitionable(),
-                    };
-                    std::mem::drop(res);
-                    out_res.lock().unwrap()[idx] = out;
-                }
-            });
-        };});
-        self.collision_sets_cycle_summaries = out_res.into_inner().unwrap();
-        println!("finished compute with threads threads: {}",n_thrds);
-        }
-        #[cfg(target_arch = "wasm32")]
-        {
-            self.collision_sets_cycle_summaries = self
-            .collision_sets
-            .par_iter()
-            .map(|set| {
-                let res = cycle_search(
-                    &self.collision_sets_graph,
-                    set,
-                    self.sweep_dir,
-                    self.exclude_common_edges,
-                    true,
-                );
-                // res.minimal_trafo();
-
-                let minimal_part = res
-                    .partitionable_pairs
-                    .iter()
-                    .max_by(|(_, _, v), (_, _, w)| {
-                        ExhaustiveCycleSearchResult::compare_partitions(&v, &w)
-                    });
-                CycleSearchResSummary {
-                    maximal_minimal_cycle: minimal_part
-                        .map(|mp| mp.2.iter().map(|v| v.len() as u16).collect::<Vec<u16>>()),
-                    has_non_part: res.has_non_partitionable(),
-                }
-            })
-            .collect();
+                    }
+                })
+                .collect();
         }
     }
 
@@ -1299,7 +1305,7 @@ impl CollisionSetsPanel {
                 ui.separator();
                 ui.strong("#Off-Diagonal Points");
                 ui.label("Sorts by ascending or descending number of off diagonal points in the persistence diagrams. \
-                maximum of the off-diagonal points in the forwards and backwards diagram is considered. The Slider determines how 
+                maximum of the off-diagonal points in the forwards and backwards diagram is considered. The Slider determines how
                 much zeroeth versus first homology off diagonal points are weighted. All the way towards H₀ and only off diagonal \
                 connected components will be considered and vise versa. Lerp in between.\n\
                 Follows filter range notation as described above.");
@@ -1341,7 +1347,7 @@ impl CollisionSetsPanel {
                 temp_str.push_str(&self.filter_part);
                 temp_str.push(']');
                 let mut exact_matches: Vec<Vec<u16>> = Vec::new();
-                let mut ranges: Vec<(Vec<u16>, Vec<u16>)> = Vec::new(); 
+                let mut ranges: Vec<(Vec<u16>, Vec<u16>)> = Vec::new();
                 let mut correct = true;
                 if let Ok(v) = serde_json::from_str::<Value>(&temp_str) {
                     // valid json
@@ -1356,8 +1362,8 @@ impl CollisionSetsPanel {
                             exact_matches.push(p.iter().map(|v: &Value| v.as_u64().unwrap() as u16).collect());
                             continue;
                         }
-                        if p.len() == 2 && p.iter().all(|v| 
-                            v.as_array().and_then(|a| 
+                        if p.len() == 2 && p.iter().all(|v|
+                            v.as_array().and_then(|a|
                             if a.iter().all(|v| v.is_u64()) {Some(0u64)} else {None}
                             ).is_some()) {
                             ranges.push(
@@ -1425,7 +1431,7 @@ impl CollisionSetsPanel {
             temp_str.push(']');
             let mut correct = true;
             let mut exact_matches: Vec<usize> = Vec::new();
-            let mut ranges: Vec<(usize, usize)> = Vec::new(); 
+            let mut ranges: Vec<(usize, usize)> = Vec::new();
             if let Ok(v) = serde_json::from_str::<Value>(&temp_str) {
                 if let Some(a) = v.as_array() {
                 for v in a.iter() {
@@ -1451,7 +1457,7 @@ impl CollisionSetsPanel {
                 }
                 return;
             }
-            
+
             for b in v.iter_mut() {
                 *b = false;
             }
@@ -1486,7 +1492,7 @@ impl CollisionSetsPanel {
             temp_str.push(']');
             let mut correct = true;
             let mut exact_matches: Vec<u32> = Vec::new();
-            let mut ranges: Vec<(u32, u32)> = Vec::new(); 
+            let mut ranges: Vec<(u32, u32)> = Vec::new();
             if let Ok(v) = serde_json::from_str::<Value>(&temp_str) {
                 if let Some(a) = v.as_array() {
                 for v in a.iter() {
@@ -1552,7 +1558,7 @@ impl CollisionSetsPanel {
             temp_str.push(']');
             let mut correct = true;
             let mut exact_matches: Vec<u32> = Vec::new();
-            let mut ranges: Vec<(u32, u32)> = Vec::new(); 
+            let mut ranges: Vec<(u32, u32)> = Vec::new();
             if let Ok(v) = serde_json::from_str::<Value>(&temp_str) {
                 if let Some(a) = v.as_array() {
                 for v in a.iter() {
@@ -1619,7 +1625,7 @@ impl CollisionSetsPanel {
             temp_str.push(']');
             let mut correct = true;
             let mut exact_matches: Vec<f64> = Vec::new();
-            let mut ranges: Vec<(f64, f64)> = Vec::new(); 
+            let mut ranges: Vec<(f64, f64)> = Vec::new();
             if let Ok(v) = serde_json::from_str::<Value>(&temp_str) {
                 if let Some(a) = v.as_array() {
                 for v in a.iter() {
@@ -1686,71 +1692,77 @@ impl CollisionSetsPanel {
             self.selected_set = None;
         }
         ui.separator();
-        ui.with_layout(egui::Layout::left_to_right(egui::Align::Center).with_cross_justify(true), |ui| {
-            
-            ui.with_layout(egui::Layout::top_down(egui::Align::Min).with_cross_justify(true), |ui|{
-            ui.set_width(ui.available_width() / 5.);
-            if self.filter_indices.is_empty() {
-                self.selected_set = None;
-                ui.centered_and_justified(|ui| {
-                egui::Frame::group(ui.style()).show(ui, |ui| {
-                    ui.set_width(ui.available_width());
-                    ui.set_height(ui.available_height());
-                    ui.heading("No collision sets availible");
-                });});
-                return;
-            } else {
-            egui::ScrollArea::vertical()
-                .max_width(ui.available_width())
-                .show_rows(ui, 50., self.filter_indices.len(), |ui, vis_rows| {
-                    for row_idx in vis_rows {
-                        let set_idx = self.filter_indices[row_idx];
-                        let collision_set = &self.collision_sets[set_idx];
-                        // if set_idx >= self.selected_collision_set_graphs.len() {
-                        //     self.selected_collision_set_graphs
-                        //         .resize(set_idx + 1, vec![true; collision_set.len()]);
-                        // }
-                        // for graph_idx in 0..collision_set.len() {
-                        //     if graph_idx >= self.selected_collision_set_graphs[set_idx].len() {
-                        //         self.selected_collision_set_graphs[set_idx]
-                        //             .resize(graph_idx + 1, true);
-                        //     }
-                        // }
-
-                        let minimal_part =
-                            &self.collision_sets_cycle_summaries[set_idx].maximal_minimal_cycle;
-                        let minimal_partition = if let Some(mp) = minimal_part {
-                            format!("min. part. cycles: {:?}", mp)
-                        } else {
-                            String::from("no partitionable pairs")
-                        };
-                        
-                        let fr = egui::Frame::group(ui.style());
-                        fr.show(ui, |ui| {
-                            let mar = fr.total_margin();
-                            ui.set_height(50. - mar.top - mar.bottom);
-                            ui.set_width(ui.available_width());
-                            ui.vertical(|ui| {
-                                ui.label(format!(
-                                    "Set {} ({} graphs, {})",
-                                    set_idx + 1,
-                                    collision_set.len(),
-                                    minimal_partition
-                                ));
-                                if ui.button("Show").clicked() {
-                                    self.selected_set = Some(set_idx);
-                                }
+        ui.with_layout(
+            egui::Layout::left_to_right(egui::Align::Center).with_cross_justify(true),
+            |ui| {
+                ui.with_layout(
+                    egui::Layout::top_down(egui::Align::Min).with_cross_justify(true),
+                    |ui| {
+                        ui.set_width(ui.available_width() / 5.);
+                        if self.filter_indices.is_empty() {
+                            self.selected_set = None;
+                            ui.centered_and_justified(|ui| {
+                                egui::Frame::group(ui.style()).show(ui, |ui| {
+                                    ui.set_width(ui.available_width());
+                                    ui.set_height(ui.available_height());
+                                    ui.heading("No collision sets availible");
+                                });
                             });
-                        });
-                    }
+                            return;
+                        } else {
+                            egui::ScrollArea::vertical()
+                                .max_width(ui.available_width())
+                                .show_rows(ui, 50., self.filter_indices.len(), |ui, vis_rows| {
+                                    for row_idx in vis_rows {
+                                        let set_idx = self.filter_indices[row_idx];
+                                        let collision_set = &self.collision_sets[set_idx];
+                                        // if set_idx >= self.selected_collision_set_graphs.len() {
+                                        //     self.selected_collision_set_graphs
+                                        //         .resize(set_idx + 1, vec![true; collision_set.len()]);
+                                        // }
+                                        // for graph_idx in 0..collision_set.len() {
+                                        //     if graph_idx >= self.selected_collision_set_graphs[set_idx].len() {
+                                        //         self.selected_collision_set_graphs[set_idx]
+                                        //             .resize(graph_idx + 1, true);
+                                        //     }
+                                        // }
+
+                                        let minimal_part = &self.collision_sets_cycle_summaries
+                                            [set_idx]
+                                            .maximal_minimal_cycle;
+                                        let minimal_partition = if let Some(mp) = minimal_part {
+                                            format!("min. part. cycles: {:?}", mp)
+                                        } else {
+                                            String::from("no partitionable pairs")
+                                        };
+
+                                        let fr = egui::Frame::group(ui.style());
+                                        fr.show(ui, |ui| {
+                                            let mar = fr.total_margin();
+                                            ui.set_height(50. - mar.top - mar.bottom);
+                                            ui.set_width(ui.available_width());
+                                            ui.vertical(|ui| {
+                                                ui.label(format!(
+                                                    "Set {} ({} graphs, {})",
+                                                    set_idx + 1,
+                                                    collision_set.len(),
+                                                    minimal_partition
+                                                ));
+                                                if ui.button("Show").clicked() {
+                                                    self.selected_set = Some(set_idx);
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                        }
+                    },
+                );
+                egui::Frame::group(ui.style()).show(ui, |ui| {
+                    self.draw_selected_graphs(&mut c_cycle_summary, self.selected_set, ui);
                 });
-            }
-            });
-            egui::Frame::group(ui.style()).show(ui, |ui| {
-                self.draw_selected_graphs(&mut c_cycle_summary, self.selected_set, ui);
-            });
-            
-        });
+            },
+        );
         c_cycle_summary
     }
 
@@ -1766,22 +1778,25 @@ impl CollisionSetsPanel {
             });
             return;
         }
-        let set_idx = set_idx.expect("you should have an is_none check before this which you may have removed");
+        let set_idx = set_idx
+            .expect("you should have an is_none check before this which you may have removed");
         let mut mod_graph = self.collision_sets_graph.clone();
         let mut display_cycle_search = false;
         draw_collision_set(
-            ui, 
-            &self.collision_sets[set_idx], 
-            &self.collision_sets_persistence[set_idx], 
-            &mut mod_graph, 
-            self.collision_sets_cycle_summaries[set_idx].has_non_part, 
-            &mut display_cycle_search);
+            ui,
+            &self.collision_sets[set_idx],
+            &self.collision_sets_persistence[set_idx],
+            &mut mod_graph,
+            self.collision_sets_cycle_summaries[set_idx].has_non_part,
+            &mut display_cycle_search,
+        );
         if display_cycle_search {
             *c_cycle_summary = Some(CycleSearchPanel::new(
-                &self.collision_sets[set_idx], 
-                !self.exclude_common_edges, 
-                &self.collision_sets_graph, 
-                self.sweep_dir))
+                &self.collision_sets[set_idx],
+                !self.exclude_common_edges,
+                &self.collision_sets_graph,
+                self.sweep_dir,
+            ))
         }
     }
 }
@@ -1794,7 +1809,7 @@ struct CollidingGraphsPanel {
     cycle_search_res: ExhaustiveCycleSearchResult,
     include_common_edges: bool,
     help_button: bool,
-    persistence: Vec<(DirectedPersistence, DirectedPersistence)>
+    persistence: Vec<(DirectedPersistence, DirectedPersistence)>,
 }
 
 impl CollidingGraphsPanel {
@@ -1807,28 +1822,37 @@ impl CollidingGraphsPanel {
         let mut display_cycle_search = false;
         // TODO: add help button
         draw_collision_set(
-            ui, 
-            &self.collision_set, 
-            &self.persistence, 
-            &mut mod_graph, 
-            self.cycle_search_res.has_non_partitionable(), 
-            &mut display_cycle_search);
+            ui,
+            &self.collision_set,
+            &self.persistence,
+            &mut mod_graph,
+            self.cycle_search_res.has_non_partitionable(),
+            &mut display_cycle_search,
+        );
         if display_cycle_search {
             *c_cycle_summary = Some(CycleSearchPanel::new(
-                &self.collision_set, 
-                self.include_common_edges, 
-                &self.base_graph, 
-                self.sweep_dir))
+                &self.collision_set,
+                self.include_common_edges,
+                &self.base_graph,
+                self.sweep_dir,
+            ))
         }
     }
-    
-    fn recompute(&mut self, graph: &Graph, ignore_dangling_vertices: bool, exclude_common_edges: bool, sweep_dir: SweepDir) {
+
+    fn recompute(
+        &mut self,
+        graph: &Graph,
+        ignore_dangling_vertices: bool,
+        exclude_common_edges: bool,
+        sweep_dir: SweepDir,
+    ) {
         self.include_common_edges = !exclude_common_edges;
         // TODO: handle too many vtx gracefully
         let g_iter = AllSmallGraphs32::new(graph).unwrap();
         self.base_graph = graph.clone();
         self.sweep_dir = sweep_dir;
-        let collisions = graph.find_colliding_graphs(self.sweep_dir, g_iter, ignore_dangling_vertices);
+        let collisions =
+            graph.find_colliding_graphs(self.sweep_dir, g_iter, ignore_dangling_vertices);
         self.collision_set = collisions;
         // Compute persistence for each colliding graph
         self.persistence = self
@@ -1851,7 +1875,12 @@ impl CollidingGraphsPanel {
             )
             .collect();
 
-        self.cycle_search_res = exhaustive_cycle_search(&self.base_graph, &self.collision_set, self.sweep_dir, exclude_common_edges)
+        self.cycle_search_res = exhaustive_cycle_search(
+            &self.base_graph,
+            &self.collision_set,
+            self.sweep_dir,
+            exclude_common_edges,
+        )
     }
 }
 
@@ -2102,14 +2131,22 @@ impl TemplateApp {
 
     fn draw_colliding_graphs_controls(&mut self, ui: &mut egui::Ui) {
         if ui.button("Compute Colliding Graphs").clicked() {
-            self.colliding_graphs_data.recompute(&self.graph, self.ignore_dangling_vertices, self.exclude_common_edges, self.sweep_dir);
+            self.colliding_graphs_data.recompute(
+                &self.graph,
+                self.ignore_dangling_vertices,
+                self.exclude_common_edges,
+                self.sweep_dir,
+            );
             self.show_collisions_panel = true;
         }
 
         if ui.button("Show Colliding Graphs").clicked() {
             self.show_collisions_panel = true;
         }
-        ui.label(format!("Collisions found: {}", self.colliding_graphs_data.collision_set.len()));
+        ui.label(format!(
+            "Collisions found: {}",
+            self.colliding_graphs_data.collision_set.len()
+        ));
     }
 
     fn update_sweep_direction(&mut self, ui: &mut egui::Ui) {
@@ -2288,8 +2325,7 @@ impl eframe::App for TemplateApp {
                 if let Some(interact_pos) = response.interact_pointer_pos() {
                     match self.mode {
                         InteractionMode::AddVertex => {
-                            let world_pos =
-                                screen_to_world(interact_pos, canvas_rect, grid_size);
+                            let world_pos = screen_to_world(interact_pos, canvas_rect, grid_size);
 
                             let new_idx = self.graph.vertices.len();
                             let mut new_graph = Graph::new(new_idx + 1);

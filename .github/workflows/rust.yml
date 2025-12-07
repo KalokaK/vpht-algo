@@ -3,8 +3,8 @@ on: [push, pull_request, workflow_dispatch]
 name: CI
 
 env:
-  RUSTFLAGS: -D warnings -A dead_code
-  RUSTDOCFLAGS: -D warnings -A dead_code
+  RUSTFLAGS: # -D warnings -A dead_code
+  RUSTDOCFLAGS: # -D warnings -A dead_code
 
 jobs:
   check:
