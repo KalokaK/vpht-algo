@@ -2073,6 +2073,15 @@ impl TemplateApp {
         ui.label("Sweep Direction:");
 
         self.update_sweep_direction(ui);
+        if ui.button("Project Vertices")
+            .on_hover_text("Project all vertices of the drawn graph onto the line defined by the green sweep direction vector.")
+            .clicked() {
+            for v in self.graph.vertices.iter_mut() {
+                let ipr = self.sweep_dir.height(v);
+                v.x = ipr * self.sweep_dir.x;
+                v.y = ipr * self.sweep_dir.y;
+            }
+        }
 
         ui.separator();
         ui.label(format!("Vertices: {}", self.graph.vertices.len()));
@@ -2095,12 +2104,14 @@ impl TemplateApp {
         ui.checkbox(
             &mut self.ignore_dangling_vertices,
             "Ignore Dangling Vertices",
-        );
+        ).on_hover_text("Determines if graphs with isolated vertices should be ignored for the search. \
+                        Note that this may include the original graph for “Compute Colliding \
+Graphs” in which case no results will be returned!");
         if ui
             .checkbox(
                 &mut self.exclude_common_edges,
                 "Exclude Common Edges from Cycle Search",
-            )
+            ).on_hover_text("During the cycle search, only use the edges which are not present in both graphs in the pair to construct cycles.\nNote that common edges always form a length two cycle.")
             .changed()
         {
             // TODO: dedupe code
@@ -2116,7 +2127,10 @@ impl TemplateApp {
     }
 
     fn draw_collision_sets_controls(&mut self, ui: &mut egui::Ui) {
-        if ui.button("Compute Collision Sets").clicked() {
+        if ui.button("Compute Collision Sets")
+        .on_hover_text("Run the computation to find all graphs, which have the drawn graph has a subgraph and the same vertices,\
+            partition them into sets, such that within a set all graphs have the same VPHT.")
+        .clicked() {
             self.collision_sets_data.recompute_collision_sets(
                 &self.graph,
                 self.ignore_dangling_vertices,
@@ -2137,7 +2151,10 @@ impl TemplateApp {
     }
 
     fn draw_colliding_graphs_controls(&mut self, ui: &mut egui::Ui) {
-        if ui.button("Compute Colliding Graphs").clicked() {
+        if ui.button("Compute Colliding Graphs")
+        .on_hover_text("Run the computation which finds graphs which have an identical VPHT (in the given direction and its reverse)\
+            to the one currently drawn. Then display the window.")
+        .clicked() {
             self.colliding_graphs_data.recompute(
                 &self.graph,
                 self.ignore_dangling_vertices,
