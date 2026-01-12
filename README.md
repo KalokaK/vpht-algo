@@ -326,42 +326,25 @@ Sets\" feature, with the corresponding number of vertically stacked
 vertices drawn, \"Ignore Dangling Vertices\" disabled and no edges
 drawn.
 
-::: fact
-[]{#fact:part7 label="fact:part7"} All pairs of vertical graphs with up
-to seven vertices and which share a VPHT, are colliding pairs, that is,
-their disjoint union graph partitions into alternating cycles, and they
-are of type $\mathcal{G}_1,\mathcal{G}_2$.
-:::
+> [!IMPORTANT]
+> **Fact** 
+> All pairs of vertical graphs with up to seven vertices and which share a VPHT, are colliding pairs, that is, their disjoint union graph partitions into alternating cycles, and they are of type $\mathcal{G}_1,\mathcal{G}_2$.
 
-::: remark
-[]{#rem:about-part7 label="rem:about-part7"}
-[\[fact:part7\]](#fact:part7){reference-type="ref+Label"
-reference="fact:part7"} was obtained with \"Common Edges Excluded from
-Cycle Search\" (see [1.1](#app-overview){reference-type="ref+label"
-reference="app-overview"}) as edges common to both always from a cycle,
-and thus their inclusion cannot break partitionability.
-:::
+> [!NOTE]
+> **Remark** 
+> [[fact:part7]](#fact:part7) was obtained with "Common Edges Excluded from Cycle Search" (see [1.1](#app-overview)) as edges common to both always from a cycle, and thus their inclusion cannot break partitionability.
 
-::: corollary
-[]{#cor:independent7 label="cor:independent7"} All pairs of vertical
-graphs with up to seven vertices and which share a VPHT form colliding
-pairs, and there exists an alternating cycle partition such that all
-common edges form cycles of length two.
-:::
+> [!IMPORTANT]
+> **Corollary** 
+> All pairs of vertical graphs with up to seven vertices and which share a VPHT form colliding pairs, and there exists an alternating cycle partition such that all common edges form cycles of length two.
 
-::: proof
-*Proof.* By
-[\[rem:about-part7\]](#rem:about-part7){reference-type="ref+label"
-reference="rem:about-part7"} and
-[\[fact:part7\]](#fact:part7){reference-type="ref+label"
-reference="fact:part7"} we can conclude that the disjoint union graph
-for all such pairs with up to seven vertices has the desired property. ◻
-:::
+> [!NOTE]
+> **Proof**
+> By [[rem:about-part7]](#rem:about-part7) and [[fact:part7]](#fact:part7) we can conclude that the disjoint union graph for all such pairs with up to seven vertices has the desired property. ◻
 
-::: remark
-This implies, that if we would remove all common edges, we could still
-obtain a decomposition into alternating cycles.
-:::
+> [!NOTE]
+> **Remark**
+> This implies, that if we would remove all common edges, we could still obtain a decomposition into alternating cycles.
 
 [^1]: Notice how the \"Compute Colliding Graphs\" brute force search is
     nothing but a search for the collision set which contains the drawn
