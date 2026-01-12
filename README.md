@@ -119,7 +119,7 @@ configuration options for the brute force search:
 
 1.  **Ignore Dangling Vertices:** Determines if graphs with isolated
     vertices should be ignored for the search. Note that this may
-    include the original graph for \"Compute Colliding Graphs\" in which
+    include the original graph for "Compute Colliding Graphs" in which
     case no results will be returned!
 
 2.  **Exclude Common Edges from Cycle Search:** Determines whether to
@@ -128,7 +128,7 @@ configuration options for the brute force search:
 
 The tool features various tooltips accessible by **hovering over the
 various features,** and a more in-depth explanation of the search and
-sort functionality through a \"help\" button. In the coming sections, we
+sort functionality through a "help" button. In the coming sections, we
 will detail some of the inner workings of the tool.
 
 ## Core Algorithms
@@ -268,16 +268,16 @@ Thus, we call a partition minimal if none of its cycles can be further
 subdivided into shorter cycles. In our algorithm, we expand this
 further: If we have two partitions into cycles $p_1, p_2$ we can
 consider the lengths of cycles in $P_1$ and $P_2$ in descending order
-and represent $P_1$ as $(l_{1}, l_{2},\dots,l_{k_{1}}, 0, 0, \dots)$
-with $l_{i}\geq l_{i+1}$ and $P_2$ as
-$(m_{1}, m_{2},\dots,m_{k_{2}}, 0, 0, \dots)$ with $m_i \geq m_{i+1}$.
-We can then compare these in lexicographical order, which we denote
-$\triangleleft$. We pick a partition into cycles which is minimal with
-respect to this ordering to represent the colliding pair. Further work
-could explore all possible partitions into cycles and look for
-interesting results there; this was not our focus.
+    represent $P_1$ as $(l_{1}, l_{2},\dots,l_{k_{1}}, 0, 0, \dots)$
+    with $l_{i}\geq l_{i+1}$ and $P_2$ as
+    $(m_{1}, m_{2},\dots,m_{k_{2}}, 0, 0, \dots)$ with $m_i \geq m_{i+1}$.
+    We can then compare these in lexicographical order, which we denote
+    $\triangleleft$. We pick a partition into cycles which is minimal with
+    respect to this ordering to represent the colliding pair. Further work
+    could explore all possible partitions into cycles and look for
+    interesting results there; this was not our focus.
 
-Lastly, we would like to note that we perform this \"minimum finding\"
+Lastly, we would like to note that we perform this "minimum finding"
 in-place during the search and not as a secondary step, as it is vastly
 more memory efficient. Here is an algorithmic description:
 
@@ -318,21 +318,21 @@ End Function
 ## Numerical Results
 
 First of all, we would like to remind the reader of the [restriction to
-non-multiset graphs](#par:restrict) that we make for our computations.
+non-multiset graphs](#restriction-to-non-multiset-graphs) that we make for our computations.
 This restriction holds for all the following numerical results.
-Furthermore, the proof for the following fact is \"proven by
-computation\". Results were obtained using the \"Compute Collision
-Sets\" feature, with the corresponding number of vertically stacked
-vertices drawn, \"Ignore Dangling Vertices\" disabled and no edges
+Furthermore, the proof for the following fact is "proven by
+computation". Results were obtained using the "Compute Collision
+Sets" feature, with the corresponding number of vertically stacked
+vertices drawn, "Ignore Dangling Vertices" disabled and no edges
 drawn.
 
 > [!IMPORTANT]
-> **Fact** 
+> **Fact** <a name="fact:part7"></a>
 > All pairs of vertical graphs with up to seven vertices and which share a VPHT, are colliding pairs, that is, their disjoint union graph partitions into alternating cycles, and they are of type $\mathcal{G}_1,\mathcal{G}_2$.
 
 > [!NOTE]
-> **Remark** 
-> [[fact:part7]](#fact:part7) was obtained with "Common Edges Excluded from Cycle Search" (see [1.1](#app-overview)) as edges common to both always from a cycle, and thus their inclusion cannot break partitionability.
+> **Remark** <a name="rem:about-part7"></a>
+> [Fact](#fact:part7) was obtained with "Common Edges Excluded from Cycle Search" (see [Application Feature Overview](#application-feature-overview)) as edges common to both always from a cycle, and thus their inclusion cannot break partitionability.
 
 > [!IMPORTANT]
 > **Corollary** 
@@ -340,26 +340,25 @@ drawn.
 
 > [!NOTE]
 > **Proof**
-> By [[rem:about-part7]](#rem:about-part7) and [[fact:part7]](#fact:part7) we can conclude that the disjoint union graph for all such pairs with up to seven vertices has the desired property. ◻
+> By [Remark](#rem:about-part7) and [Fact](#fact:part7) we can conclude that the disjoint union graph for all such pairs with up to seven vertices has the desired property. ◻
 
 > [!NOTE]
 > **Remark**
 > This implies, that if we would remove all common edges, we could still obtain a decomposition into alternating cycles.
 
-[^1]: Notice how the \"Compute Colliding Graphs\" brute force search is
+[^1]: Notice how the "Compute Colliding Graphs" brute force search is
     nothing but a search for the collision set which contains the drawn
     graph.
 
-[^2]: []{#foot:constant label="foot:constant"}As a result of having the
+[^2]: As a result of having the
     same VPHT both of these are constant within a collision set.
 
 [^3]: How this is defined and works is document in the UI, and further
     ellaborated on in
-    [1.2.4.1](#finding-minimal-partitions){reference-type="ref+label"
-    reference="finding-minimal-partitions"}.
+    [Finding Minimal Partitions](#finding-minimal-partitions).
 
 [^4]: That is, consider the two graphs where the respective edges common
     to both of them are removed.
 
-[^5]: []{#foot:respect label="foot:respect"}Respecting the option for
-    \"Ignore Dangling Vertices\".
+[^5]: Respecting the option for
+    "Ignore Dangling Vertices".
